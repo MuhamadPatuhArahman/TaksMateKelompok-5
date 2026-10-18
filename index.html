@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#191970">
+<title>Kelompok 5 Kece</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kelompok 5 Kece">
+<style>
+html,body{margin:0;height:100%}
+body{background:#0a0a2b;display:flex;align-items:stretch;justify-content:center;overflow:hidden}
+/* Layar HP potret (9:16) di tengah, setinggi jendela; sisi kiri-kanan gelap */
+#phone{height:100vh;height:100dvh;width:min(100vw,calc(100vh * 9 / 16));width:min(100vw,calc(100dvh * 9 / 16));background:#fff}
+#phone iframe{width:100%;height:100%;border:0;display:block}
+</style>
+</head>
+<body>
+<div id="phone"><iframe id="f" title="Kelompok 5 Kece" allow="autoplay; fullscreen"></iframe></div>
+<script>
+(function(){
+  // Laptop/PC (mouse) -> tampil sebagai layar HP di tengah. HP/tablet sentuh -> layar penuh biasa.
+  try{if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}
+  var desktop=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  if(!desktop){location.replace('app.html');return}
+  document.getElementById('f').src='app.html';
+
+  // Saat aplikasi terpasang dibuka (belum diperbesar), buat jendelanya potret.
+  var installed=matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: window-controls-overlay)').matches||matchMedia('(display-mode: minimal-ui)').matches;
+  if(installed && window.outerWidth<(screen.availWidth||0)-20){
+    try{
+      var W=460,H=Math.min(screen.availHeight||960,960);
+      window.resizeTo(W,H);
+      window.moveTo(Math.max(0,Math.round((screen.availWidth-W)/2)),Math.max(0,Math.round((screen.availHeight-H)/2)));
+    }catch(e){}
+  }
+})();
+</script>
+<script>
+/* Bantuan pasang aplikasi: tombol "Pasang" + petunjuk bila belum bisa dipasang */
+(function(){
+  if(window.top!==window.self)return;
+  var standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  if(standalone)return;
+  var dp=null,bar=null;
+  try{if(sessionStorage.getItem('pasangTutup')==='1')return}catch(e){}
+  function ui(msg,btnText,onBtn){
+    if(bar)bar.remove();
+    bar=document.createElement('div');
+    bar.style.cssText='position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:2147483647;max-width:92vw;display:flex;gap:10px;align-items:center;padding:10px 12px 10px 14px;border-radius:14px;background:#191970;color:#fff;font:600 13px/1.35 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.35)';
+    var t=document.createElement('span');t.textContent=msg;bar.appendChild(t);
+    if(btnText){var b=document.createElement('button');b.textContent=btnText;
+      b.style.cssText='border:0;border-radius:10px;padding:8px 12px;font:700 13px system-ui,sans-serif;background:#ffd84d;color:#191970;cursor:pointer;white-space:nowrap';
+      b.onclick=onBtn;bar.appendChild(b)}
+    var x=document.createElement('button');x.textContent='\u2715';x.setAttribute('aria-label','Tutup');
+    x.style.cssText='border:0;background:transparent;color:#fff;font-size:16px;cursor:pointer;padding:4px 6px';
+    x.onclick=function(){bar.remove();try{sessionStorage.setItem('pasangTutup','1')}catch(e){}};
+    bar.appendChild(x);document.body.appendChild(bar);
+  }
+  var secure=location.protocol==='https:'||location.hostname==='localhost';
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();dp=e;
+    ui('Pasang aplikasi ini di perangkatmu','Pasang',function(){
+      dp.prompt();dp.userChoice.finally(function(){dp=null;if(bar)bar.remove()});
+    });
+  });
+  window.addEventListener('appinstalled',function(){if(bar)bar.remove()});
+  window.addEventListener('load',function(){
+    setTimeout(function(){
+      if(dp||bar)return;
+      if(!secure){
+        ui('Belum bisa dipasang: buka lewat alamat https (GitHub Pages / Netlify), bukan dari file di folder.');
+      }else if(/iphone|ipad|ipod/i.test(navigator.userAgent)){
+        ui('iPhone/iPad: ketuk tombol Share lalu pilih "Add to Home Screen".');
+      }
+    },1500);
+  });
+})();
+</script>
+</body>
+</html>
